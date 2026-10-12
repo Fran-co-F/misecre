@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Deploy automático con `git push` (repo "bare" en el VPS). Instalación en el VPS:
+#   git init --bare ~/misecre.git
+#   cp post-receive.example ~/misecre.git/hooks/post-receive && chmod +x ~/misecre.git/hooks/post-receive
+# Desde tu PC:
+#   git remote add vps ssh://USUARIO@TU-SERVIDOR:PUERTO/home/USUARIO/misecre.git
+#   git push vps main
+set -euo pipefail
+APP="$HOME/misecre"
+export PATH="$HOME/.local/bin:$PATH"
+export XDG_RUNTIME_DIR="/run/user/$(id -u)"          # para que `systemctl --user` funcione desde el hook
+
+GIT_WORK_TREE="$APP" git checkout -f main            # solo pisa lo versionado: .env y config.yaml quedan
+cd "$APP"
+uv sync --frozen
+systemctl --user restart misecre
+echo "✓ misecre actualizado"

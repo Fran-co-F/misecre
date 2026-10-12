@@ -1,0 +1,27 @@
+# /etc/nginx/sites-available/misecre   (luego: ln -s … sites-enabled/ && nginx -t && systemctl reload nginx)
+# Reemplazá misecre.tudominio.com. Después de crearlo: sudo certbot --nginx -d misecre.tudominio.com
+# (certbot agrega el bloque 443 con el certificado y la redirección de 80 a 443).
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name misecre.tudominio.com;
+
+    client_max_body_size 10m;                 # audios grabados desde el navegador
+
+    location / {
+        proxy_pass http://127.0.0.1:8787;     # misecre escucha SOLO en loopback
+        proxy_http_version 1.1;
+        proxy_set_header Connection "";
+
+        proxy_set_header Host $host;
+        # misecre toma la IP que agregó ESTE nginx (la última de la lista), así que ambas formas son seguras.
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # /events usa Server-Sent Events (avisos en vivo): sin buffer y con timeout largo
+        proxy_buffering off;
+        proxy_cache off;
+        proxy_read_timeout 3600s;
+    }
+}

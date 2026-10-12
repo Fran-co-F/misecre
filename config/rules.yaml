@@ -1,0 +1,110 @@
+# Reglas de clasificación. Se compara sin tildes y en minúsculas: escribilas con su ortografía real
+# (las tildes se usan para ayudar al reconocimiento de voz, no para comparar).
+# Una palabra suelta matchea por prefijo (>=4 letras: "reunion" matchea "reuniones")
+# y con tolerancia a errores de transcripcion. Frases (con espacios) matchean exactas.
+# Para dar mas peso: "- cliente: 2"  (peso 2 en vez de 1)
+
+categories:
+  trabajo:
+    - reunión
+    - cliente
+    - presupuesto
+    - informe
+    - deadline
+    - entrega
+    - jefe
+    - oficina
+    - proyecto
+    - sprint
+    - factura
+    - contrato
+    - proveedor
+    - llamada con
+    - standup
+    - demo
+    - trabajo
+  personal:
+    - médico
+    - turno
+    - dentista
+    - familia
+    - cumpleaños
+    - banco
+    - trámite
+    - súper
+    - mamá
+    - papá
+    - hermano
+    - gimnasio
+    - análisis
+    - farmacia
+    - veterinaria
+    - dni
+    - pagar
+  ocio:
+    - cine
+    - partido
+    - asado
+    - juntada
+    - salir
+    - serie
+    - juego
+    - jugar
+    - videojuego
+    - viaje
+    - cena
+    - recital
+    - bar
+    - película
+    - amigos
+    - fiesta
+    - joda
+
+# Verbos/sustantivos que sugieren el tipo (stems, sin tildes)
+event_words: [reunion, turno, cita, partido, cena, recital, cumpleanos, llamada, junta, demo, standup, juntada, asado, cine]
+task_words: [compr, envi, mand, llam, pagar, pago, entreg, revis, prepar, termin, hacer, sacar, renov, reserv, imprim, firmar, retirar, buscar]
+
+# Frases de apertura que se quitan del titulo (sin tildes)
+drop_prefixes:
+  - me recordas que tengo que
+  - me recordas que tengo
+  - me recordas que
+  - me recordas de
+  - me recordas
+  - me recuerdas que
+  - me recuerdas de
+  - me recuerdas
+  - podes recordarme que
+  - podes recordarme
+  - quiero que me recuerdes que
+  - quiero que me recuerdes
+  - armame un recordatorio para
+  - armame un recordatorio de
+  - armame un recordatorio
+  - haceme un recordatorio para
+  - haceme un recordatorio de
+  - haceme un recordatorio
+  - creame un recordatorio
+  - agregame un recordatorio
+  - ponme un recordatorio
+  - un recordatorio para
+  - un recordatorio de
+  - recordatorio para
+  - recordatorio de
+  - recordatorio
+  - recordame que tengo que
+  - recordame que tengo
+  - recordame que
+  - recordame de
+  - recordame
+  - recordarme que
+  - recordarme
+  - agendame
+  - agendar
+  - anotame
+  - anota
+  - acordate de
+  - no te olvides de
+  - tengo que
+  - tengo
+  - hay

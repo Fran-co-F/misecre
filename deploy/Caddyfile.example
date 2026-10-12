@@ -1,0 +1,6 @@
+# Caddy da HTTPS automático (Let's Encrypt). Reemplazá el dominio.
+misecre.tudominio.com {
+    reverse_proxy 127.0.0.1:8787 {
+        flush_interval -1          # necesario para que /events (SSE) llegue en vivo
+    }
+}

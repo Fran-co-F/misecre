@@ -1,0 +1,102 @@
+# Copiar a config/config.yaml y ajustar. Todo lo que no figure usa estos valores por defecto.
+timezone: America/Argentina/Buenos_Aires
+data_dir: ~/.misecre           # sqlite, token de Google, logs, reglas propias (Windows: %USERPROFILE%\.misecre)
+rules_file: rules.yaml         # relativo a este archivo
+
+default_event_minutes: 60
+
+stt:
+  # Dónde se transcribe la voz:
+  #   local  = en esta máquina con Whisper (gratis, privado; la calidad depende del modelo y de la RAM)
+  #   groq   = Whisper large-v3-turbo en la nube de Groq (muy preciso y rápido, centavos; GROQ_API_KEY en .env)
+  #   openai = whisper-1 en la nube de OpenAI (OPENAI_API_KEY en .env)
+  # Con "groq"/"openai" el audio se envía a ese proveedor. Si falla, se usa el modelo local (fallback_local).
+  provider: local
+  fallback_local: true
+  model: small                 # tiny | base | small | medium  (local; en español `base` es flojo, usá small o más)
+  language: es
+  device: auto                 # auto | cpu | cuda
+  compute_type: int8
+  beam_size: 5                 # 1 = más rápido, un poco menos preciso
+  preload: true                # cargar el modelo al arrancar (el primer audio no paga la carga)
+
+classifier:
+  min_score: 0.8               # puntaje minimo de la categoria ganadora (0.8 = un match difuso)
+  min_margin: 0.5              # ventaja minima sobre la segunda
+
+# --- IA opcional (Claude Haiku) ---------------------------------------------------------------
+# La IA es el RESPALDO: las reglas resuelven primero (anotar con categoría conocida, "ya fui a comprar pan",
+# "qué tengo hoy", deshacer...) y solo lo dudoso o libre va al agente. Cada decisión de la IA que se repite
+# se convierte en regla (learning.auto_apply), así que el uso de IA baja con el tiempo.
+# La API se factura aparte de un plan Claude Pro/Max.
+ai:
+  enabled: false
+  model: claude-haiku-5-5
+  agent: true                  # chat con el agente (si ai.enabled)
+  # Quién responde primero (también con /modo en el bot):
+  #   rules_first = reglas primero y la IA solo si no alcanzan (lo más barato; aprende solo)   [por defecto]
+  #   ai_first    = la IA responde todo y las reglas quedan de respaldo (entiende mejor lo libre)
+  #   rules_only  = nunca llama a la IA
+  mode: rules_first
+  agent_max_calls_per_day: 300 # tope de gasto del agente (~US$0.0003 por llamada)
+  agent_max_rounds: 6          # idas y vueltas con herramientas por mensaje
+  agent_history_messages: 16   # cuánto recuerda de la charla
+  agent_history_hours: 12
+  max_calls_per_day: 100       # tope de la clasificación de respaldo (/anotar, sin chat)
+  min_confidence: 0.6
+
+calendar:
+  enabled: false               # true cuando tengas credentials.json de Google
+  skip_categories: []          # ej: [ocio] => esa categoría AVISA pero no se publica en Google Calendar
+  credentials_file: credentials.json   # relativo a data_dir
+  names:
+    trabajo: "Misecre · Trabajo"
+    personal: "Misecre · Personal"
+    ocio: "Misecre · Ocio"
+
+telegram:
+  allowed_chat_ids: []         # mandar /start al bot para ver tu chat_id
+
+# --- Avisos: los emite misecre (Google queda en silencio) -------------------------------------
+notifications:
+  channels: [telegram, desktop]
+  quiet_hours: "23:00-07:00"   # "off" para desactivar. Editable con /silencio
+  allday_at: "09:00"           # hora del aviso de lo que dura todo el dia
+  snooze_minutes: 10
+  categories:                  # editable con /avisos
+    trabajo:  { before: [15] }
+    personal: { before: [60, 10] }
+    ocio:     { before: [], digest_only: true }   # solo aparece en el resumen
+
+# --- Resumenes --------------------------------------------------------------------
+digests:
+  enabled: true
+  daily: "08:00"
+  periodic: []                 # ej: ["08:00","10:00","14:00","18:00"]: "cómo está todo" a esas horas (/pulso)
+  periodic_window_min: 60      # si la PC prendió tarde, se manda el último pulso vigente (nunca una ráfaga)
+  periodic_skip_empty: true    # no molestar si no hay nada para mostrar
+  weekly: { day: domingo, at: "20:00" }
+  monthly: { day: 1, at: "08:00" }
+
+# --- Sincronizacion de dos vias con Google Calendar ----------------------------------
+sync:
+  enabled: true
+  interval_min: 5
+  import_calendar_events: true       # eventos creados a mano en Google => capturas
+  import_past_days: 1
+  silence_google_reminders: true     # que los avisos los emita solo misecre
+
+learning:
+  min_count: 2                       # correcciones tuyas para SUGERIR una regla (/sugerencias)
+  auto_apply: true                   # aprender solo de las decisiones de la IA (reversible: /regla quitar)
+  agent_min_count: 2                 # veces que la IA debe decidir igual para convertirlo en regla
+
+api:
+  host: 127.0.0.1              # 127.0.0.1 = solo esta PC. En un VPS: dejalo así y poné un proxy HTTPS delante
+  port: 8787
+  allowed_ips: []              # opcional: ["203.0.113.7", "10.0.0.0/8"]; vacío = cualquiera con token
+  trust_proxy: false           # true SOLO detrás de tu proxy: usa X-Forwarded-For como IP real
+# Variables de entorno (o archivo .env):
+#   MISECRE_TELEGRAM_TOKEN   token del bot de @BotFather
+#   MISECRE_API_TOKEN        token maestro opcional (mejor: `misecre token create <dispositivo>`)
+#   ANTHROPIC_API_KEY        solo si activas la IA
